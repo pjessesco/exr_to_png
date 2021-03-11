@@ -1,5 +1,6 @@
 #include <vector>
 #include <ostream>
+#include <filesystem>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -7,7 +8,7 @@
 #define TINYEXR_IMPLEMENTATION
 #include <tinyexr.h>
 
-
+// https://github.com/Tom94/tev/blob/89fde044101eaadf43f2b44c9a84b54ffb240fc5/include/tev/Common.h#L159
 inline float toSRGB(float linear, float gamma = 2.4f) {
     static const float a = 0.055f;
     if (linear <= 0.0031308f) {
@@ -18,7 +19,7 @@ inline float toSRGB(float linear, float gamma = 2.4f) {
     }
 }
 
-bool saveImage(const char* filename, const float* rgba, int width, int height) {
+std::vector<char> convert_data(const float* rgba, int width, int height) {
 
     static const auto stbiOStreamWrite = [](void* context, void* data, int size) {
         reinterpret_cast<std::ostream*>(context)->write(reinterpret_cast<char*>(data), size);
@@ -36,9 +37,7 @@ bool saveImage(const char* filename, const float* rgba, int width, int height) {
         result[i] = (char)(floatData[i]*255+0.5f);
     }
 
-    int ret = stbi_write_png(filename, width, height, 4, static_cast<const void*>(result.data()), width * 4);
-
-    return (ret > 0);
+    return result;
 }
 
 int main(int argc, char** argv)
@@ -59,7 +58,9 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    saveImage(argv[2], rgba, width, height);
+    std::vector<char> png_data = convert_data(rgba, width, height);
+
+    int success = stbi_write_png(argv[2], width, height, 4, static_cast<const void*>(png_data.data()), width * 4);
 
     free(rgba);
 
