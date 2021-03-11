@@ -1,6 +1,8 @@
 #include <vector>
 #include <ostream>
 #include <filesystem>
+#include <string>
+#include <iostream>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -43,26 +45,43 @@ std::vector<char> convert_data(const float* rgba, int width, int height) {
 int main(int argc, char** argv)
 {
     if (argc < 3) {
-        printf("Usage: exr2ldr input.exr output.png\n");
+        printf("Usage: exr_to_png.exe [exr_dir] [png_dir]\n");
         printf("    Pixel value [0.0, 1.0] in EXR is mapped to [0, 255] for LDR image.\n");
         exit(-1);
     }
 
-    int width, height;
-    float* rgba;
-    const char* err;
+    std::filesystem::path exr_dir = argv[1];
+    std::filesystem::path png_dir = argv[2];
 
-    int ret = LoadEXR(&rgba, &width, &height, argv[1], &err);
-    if (ret != 0) {
-        printf("err: %s\n", err);
-        return -1;
+    for(const auto &p:std::filesystem::directory_iterator(exr_dir)){
+
+        const std::filesystem::path exr_path = p.path();
+        std::cout<<exr_path<<std::endl;
+
+        if(exr_path.extension().string() != ".exr"){
+            std::cout << " -- Skip unexpected extension file : " << exr_path.filename() << std::endl;
+            continue;
+        }
+
+        const std::filesystem::path png_path = (png_dir / exr_path.stem()).string() + ".png";
+        std::cout<<" >> "<<png_path<<std::endl;
+
+        int width, height;
+        float* rgba;
+        const char* err;
+
+        int ret = LoadEXR(&rgba, &width, &height, exr_path.string().c_str(), &err);
+        if (ret != 0) {
+            printf("err: %s\n", err);
+            return -1;
+        }
+        std::vector<char> png_data = convert_data(rgba, width, height);
+        int success = stbi_write_png(png_path.string().c_str(), width, height, 4, static_cast<const void*>(png_data.data()), width * 4);
+        if(success!=1){
+            std::cout<<"ERROR OCCURED"<<std::endl;
+        }
+        free(rgba);
     }
-
-    std::vector<char> png_data = convert_data(rgba, width, height);
-
-    int success = stbi_write_png(argv[2], width, height, 4, static_cast<const void*>(png_data.data()), width * 4);
-
-    free(rgba);
 
     return 0;
 }
