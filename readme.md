@@ -5,5 +5,6 @@ Lightweight version of [exr2ldr](https://github.com/syoyo/tinyexr/blob/master/ex
 
 ### Usage
 
-    exr_to_png.exe [exr_dir] [png_dir]
-    
+    exr_to_png.exe [exr_dir] [png_dir] [rgb|rgba]
+
+`rgb` will ignore exr's alpha channel, while `rgba` preserves.
