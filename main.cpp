@@ -56,7 +56,7 @@ std::vector<char> convert_data(const float* rgba, int width, int height, int tar
 
 int main(int argc, char** argv)
 {
-    if (argc < 3) {
+    if (argc < 4) {
         std::cout<<"Usage: exr_to_png.exe [exr_dir] [png_dir] [rgb|rgba])"<<std::endl;
         std::cout<<"    Pixel value [0.0, 1.0] in EXR is mapped to [0, 255] for LDR image."<<std::endl;
         std::cout<<"    WARNING : Not tested under the exr image without alpha channel."<<std::endl;
